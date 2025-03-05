@@ -8,10 +8,11 @@
     "xss": "^1.0.15",
     "zod": "^3.24.2"
   },
-  "scripts": {
-    "dev": "nodemon --ext ts --exec \"node --import tsx src/index.ts\"",
-    "start": "node --import tsx src/index.ts"
-  },
+ "scripts": {
+  "dev": "nodemon --ext ts --exec \"node --import tsx src/index.ts\"",
+  "start": "node --import tsx src/index.ts",
+  "postinstall": "npx prisma migrate deploy && npx prisma db seed"
+},
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/node": "^22.13.5",
