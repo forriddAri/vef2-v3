@@ -6,11 +6,14 @@ import { z } from 'zod';
 const app = new Hono();
 const prisma = new PrismaClient();
 
+
 // Sækja alla flokka
-app.get('/categories', async (c) => {
-  const categories = await prisma.category.findMany();
-  return c.json(categories);
+app.get('/categories/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  const category = await prisma.category.findUnique({ where: { slug } });
+  return category ? c.json(category) : c.notFound();
 });
+
 
 // Sækja ákveðinn flokk eftir slug
 app.get('/categories/:slug', async (c) => {
@@ -28,9 +31,18 @@ app.post('/category', async (c) => {
   if (!parsed.success) return c.json({ error: 'Invalid data' }, 400);
 
   const slug = body.name.toLowerCase().replace(/\s+/g, '-');
-  const category = await prisma.category.create({ data: { name: body.name, slug } });
-  return c.json(category, 201);
+
+  try {
+    const category = await prisma.category.create({ data: { name: body.name, slug } });
+    return c.json(category, 201);
+  } catch (error: any) {
+    if (error.code === 'P2002') { // Prisma unique constraint error
+      return c.json({ error: "Category already exists" }, 400);
+    }
+    return c.json({ error: "Something went wrong" }, 500);
+  }
 });
+
 
 // ✅ Nota @hono/node-server til að keyra appið
 const port = 3000;
@@ -40,3 +52,4 @@ serve({
 });
 
 console.log(`✅ Server is running on http://localhost:${port}`);
+console.log(`🚀 Server running on http://localhost:${port}`);
