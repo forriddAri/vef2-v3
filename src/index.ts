@@ -146,6 +146,117 @@ app.delete("/question/:id", async (c) => {
   }
 });
 
+// ✅ Get all answers
+app.get("/answers", async (c) => {
+  try {
+    const answers = await prisma.answers.findMany({
+      include: { question: true }, // Include related question
+    });
+    return c.json(answers);
+  } catch (error) {
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+});
+
+// ✅ Get answers for a specific question
+app.get("/questions/:id/answers", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  if (isNaN(id)) return c.json({ error: "Invalid question ID" }, 400);
+
+  try {
+    const answers = await prisma.answers.findMany({ where: { questionId: id } });
+    return answers.length > 0 ? c.json(answers) : c.json({ error: "No answers found" }, 404);
+  } catch (error) {
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
+});
+
+// ✅ Create a new answer
+const answerSchema = z.object({ text: z.string().min(1) });
+
+app.post("/questions/:id/answers", async (c) => {
+  const questionId = parseInt(c.req.param("id"));
+  const body = await c.req.json();
+  const parsed = answerSchema.safeParse(body);
+  if (!parsed.success) return c.json({ error: "Invalid data" }, 400);
+
+  try {
+    const answer = await prisma.answers.create({ data: { text: body.text, questionId } });
+    return c.json(answer, 201);
+  } catch (error) {
+    return c.json({ error: "Failed to create answer" }, 500);
+  }
+});
+
+// ✅ Update an answer
+app.patch("/answers/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const body = await c.req.json();
+
+  if (isNaN(id) || !body.text) return c.json({ error: "Invalid request data" }, 400);
+
+  try {
+    const updatedAnswer = await prisma.answers.update({
+      where: { id },
+      data: { text: body.text },
+    });
+    return c.json(updatedAnswer);
+  } catch (error) {
+    return c.json({ error: "Answer not found" }, 404);
+  }
+});
+
+// ✅ Delete an answer
+app.delete("/answers/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  if (isNaN(id)) return c.json({ error: "Invalid answer ID" }, 400);
+
+  try {
+    await prisma.answers.delete({ where: { id } });
+    return c.body(null, 204);
+  } catch (error) {
+    return c.json({ error: "Answer not found" }, 404);
+  }
+});
+
+// ✅ Update a category
+app.patch("/categories/:slug", async (c) => {
+  const slug = c.req.param("slug");
+  const body = await c.req.json();
+
+  if (!body.name) return c.json({ error: "Missing 'name' field" }, 400);
+
+  try {
+    const updatedCategory = await prisma.category.update({
+      where: { slug },
+      data: { name: body.name },
+    });
+    return c.json(updatedCategory);
+  } catch (error) {
+    return c.json({ error: "Category not found" }, 404);
+  }
+});
+
+// ✅ Update a question
+app.patch("/question/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+  const body = await c.req.json();
+
+  if (isNaN(id) || !body.question) return c.json({ error: "Invalid request data" }, 400);
+
+  try {
+    const updatedQuestion = await prisma.question.update({
+      where: { id },
+      data: { question: body.question },
+    });
+    return c.json(updatedQuestion);
+  } catch (error) {
+    return c.json({ error: "Question not found" }, 404);
+  }
+});
+
+
+
 // ✅ Start the server
 const port = process.env.PORT || 3000;
 serve({
