@@ -15,15 +15,15 @@ datasource db {
 }
 
 model Category {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  slug  String @unique
-  questions Question[]
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  slug       String     @unique
+  questions  Question[] // Relationship with Question
 }
 
 model Question {
-  id         Int    @id @default(autoincrement())
-  question   String
-  categoryId Int
- category   Category @relation(fields: [categoryId], references: [id])
+  id          Int      @id @default(autoincrement())
+  question    String
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
 }
