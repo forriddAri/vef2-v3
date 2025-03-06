@@ -6,12 +6,10 @@ import { z } from "zod";
 const app = new Hono();
 const prisma = new PrismaClient();
 
-// ✅ Test route
 app.get("/", (c) => {
   return c.json({ message: "Server is running!" });
 });
 
-// 🟢 Get all categories
 app.get("/categories", async (c) => {
   try {
     const categories = await prisma.category.findMany();
@@ -21,13 +19,12 @@ app.get("/categories", async (c) => {
   }
 });
 
-// 🟢 Get category by slug
 app.get("/categories/:slug", async (c) => {
   const slug = c.req.param("slug");
   try {
     const category = await prisma.category.findUnique({
       where: { slug },
-      include: { questions: true }, // Include questions in response
+      include: { questions: true },
     });
 
     if (!category) {
@@ -39,7 +36,6 @@ app.get("/categories/:slug", async (c) => {
   }
 });
 
-// 🟢 Create a new category
 const categorySchema = z.object({ name: z.string().min(1) });
 
 app.post("/category", async (c) => {
@@ -58,7 +54,6 @@ app.post("/category", async (c) => {
   }
 });
 
-// 🟢 Delete a category
 app.delete("/categories/:slug", async (c) => {
   const slug = c.req.param("slug");
   try {
@@ -69,11 +64,10 @@ app.delete("/categories/:slug", async (c) => {
   }
 });
 
-// 🟢 Get all questions
 app.get("/questions", async (c) => {
   try {
     const questions = await prisma.question.findMany({
-      include: { category: true }, // Include category info
+      include: { category: true },
     });
     return c.json(questions);
   } catch (error) {
@@ -81,7 +75,6 @@ app.get("/questions", async (c) => {
   }
 });
 
-// 🟢 Get question by ID
 app.get("/questions/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
   if (isNaN(id)) return c.json({ error: "Invalid question ID" }, 400);
@@ -98,7 +91,6 @@ app.get("/questions/:id", async (c) => {
   }
 });
 
-// 🟢 Get questions by category slug
 app.get("/categories/:slug/questions", async (c) => {
   const slug = c.req.param("slug");
 
@@ -114,7 +106,6 @@ app.get("/categories/:slug/questions", async (c) => {
   }
 });
 
-// 🟢 Create a new question
 const questionSchema = z.object({
   question: z.string().min(1),
   categoryId: z.number(),
@@ -133,7 +124,6 @@ app.post("/question", async (c) => {
   }
 });
 
-// 🟢 Delete a question
 app.delete("/question/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
   if (isNaN(id)) return c.json({ error: "Invalid question ID" }, 400);
@@ -146,11 +136,10 @@ app.delete("/question/:id", async (c) => {
   }
 });
 
-// ✅ Get all answers
 app.get("/answers", async (c) => {
   try {
     const answers = await prisma.answers.findMany({
-      include: { question: true }, // Include related question
+      include: { question: true },
     });
     return c.json(answers);
   } catch (error) {
@@ -158,7 +147,6 @@ app.get("/answers", async (c) => {
   }
 });
 
-// ✅ Get answers for a specific question
 app.get("/questions/:id/answers", async (c) => {
   const id = parseInt(c.req.param("id"));
   if (isNaN(id)) return c.json({ error: "Invalid question ID" }, 400);
@@ -171,7 +159,6 @@ app.get("/questions/:id/answers", async (c) => {
   }
 });
 
-// ✅ Create a new answer
 const answerSchema = z.object({ text: z.string().min(1) });
 
 app.post("/questions/:id/answers", async (c) => {
@@ -188,7 +175,6 @@ app.post("/questions/:id/answers", async (c) => {
   }
 });
 
-// ✅ Update an answer
 app.patch("/answers/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
   const body = await c.req.json();
@@ -206,7 +192,6 @@ app.patch("/answers/:id", async (c) => {
   }
 });
 
-// ✅ Delete an answer
 app.delete("/answers/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
   if (isNaN(id)) return c.json({ error: "Invalid answer ID" }, 400);
@@ -219,7 +204,6 @@ app.delete("/answers/:id", async (c) => {
   }
 });
 
-// ✅ Update a category
 app.patch("/categories/:slug", async (c) => {
   const slug = c.req.param("slug");
   const body = await c.req.json();
@@ -237,7 +221,6 @@ app.patch("/categories/:slug", async (c) => {
   }
 });
 
-// ✅ Update a question
 app.patch("/question/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
   const body = await c.req.json();
@@ -255,13 +238,10 @@ app.patch("/question/:id", async (c) => {
   }
 });
 
-
-
-// ✅ Start the server
 const port = process.env.PORT || 3000;
 serve({
   fetch: app.fetch,
   port,
 });
 
-console.log(`🚀 Server is running on http://localhost:${port}`);
+console.log(`Server is running on http://localhost:${port}`);
