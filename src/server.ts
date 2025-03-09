@@ -35,7 +35,7 @@ app.post('/category', async (c) => {
   try {
     const category = await prisma.category.create({ data: { name: body.name, slug } });
     return c.json(category, 201);
-  } catch (error: any) {
+  } catch (error) {
     if (error.code === 'P2002') { // Prisma unique constraint error
       return c.json({ error: "Category already exists" }, 400);
     }
