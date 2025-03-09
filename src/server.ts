@@ -35,13 +35,17 @@ app.post('/category', async (c) => {
   try {
     const category = await prisma.category.create({ data: { name: body.name, slug } });
     return c.json(category, 201);
-  } catch (error) {
-    if (error.code === 'P2002') { // Prisma unique constraint error
-      return c.json({ error: "Category already exists" }, 400);
+  } catch (error: unknown) {
+    if (error instanceof Error && "code" in error) {
+      const prismaError = error as { code: string };
+      if (prismaError.code === 'P2002') {
+        return c.json({ error: "Category already exists" }, 400);
+      }
     }
     return c.json({ error: "Something went wrong" }, 500);
   }
 });
+
 
 
 // ✅ Nota @hono/node-server til að keyra appið
