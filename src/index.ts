@@ -15,6 +15,7 @@ app.get("/categories", async (c) => {
     const categories = await prisma.category.findMany();
     return c.json(categories);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -32,6 +33,7 @@ app.get("/categories/:slug", async (c) => {
     }
     return c.json(category);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -48,8 +50,10 @@ app.post("/category", async (c) => {
   try {
     const category = await prisma.category.create({ data: { name: body.name, slug } });
     return c.json(category, 201);
-  } catch (error: any) {
-    if (error.code === "P2002") return c.json({ error: "Category already exists" }, 400);
+  } catch (error) {
+    if ((error as { code?: string }).code === "P2002") {
+      return c.json({ error: "Category already exists" }, 400);
+    }
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -60,6 +64,7 @@ app.delete("/categories/:slug", async (c) => {
     await prisma.category.delete({ where: { slug } });
     return c.body(null, 204);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Category not found" }, 404);
   }
 });
@@ -71,6 +76,7 @@ app.get("/questions", async (c) => {
     });
     return c.json(questions);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -87,6 +93,7 @@ app.get("/questions/:id", async (c) => {
 
     return question ? c.json(question) : c.json({ error: "Question not found" }, 404);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -102,6 +109,7 @@ app.get("/categories/:slug/questions", async (c) => {
 
     return category ? c.json(category.questions) : c.json({ error: "Category not found" }, 404);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -120,6 +128,7 @@ app.post("/question", async (c) => {
     const question = await prisma.question.create({ data: body });
     return c.json(question, 201);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -132,6 +141,7 @@ app.delete("/question/:id", async (c) => {
     await prisma.question.delete({ where: { id } });
     return c.body(null, 204);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Question not found" }, 404);
   }
 });
@@ -143,6 +153,7 @@ app.get("/answers", async (c) => {
     });
     return c.json(answers);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -155,6 +166,7 @@ app.get("/questions/:id/answers", async (c) => {
     const answers = await prisma.answers.findMany({ where: { questionId: id } });
     return answers.length > 0 ? c.json(answers) : c.json({ error: "No answers found" }, 404);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Internal Server Error" }, 500);
   }
 });
@@ -171,6 +183,7 @@ app.post("/questions/:id/answers", async (c) => {
     const answer = await prisma.answers.create({ data: { text: body.text, questionId } });
     return c.json(answer, 201);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Failed to create answer" }, 500);
   }
 });
@@ -188,6 +201,7 @@ app.patch("/answers/:id", async (c) => {
     });
     return c.json(updatedAnswer);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Answer not found" }, 404);
   }
 });
@@ -200,6 +214,7 @@ app.delete("/answers/:id", async (c) => {
     await prisma.answers.delete({ where: { id } });
     return c.body(null, 204);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Answer not found" }, 404);
   }
 });
@@ -217,6 +232,7 @@ app.patch("/categories/:slug", async (c) => {
     });
     return c.json(updatedCategory);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Category not found" }, 404);
   }
 });
@@ -234,11 +250,12 @@ app.patch("/question/:id", async (c) => {
     });
     return c.json(updatedQuestion);
   } catch (error) {
+    console.error(error);
     return c.json({ error: "Question not found" }, 404);
   }
 });
 
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 serve({
   fetch: app.fetch,
   port,
